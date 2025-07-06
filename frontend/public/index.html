@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KushalWear - Home</title>
+    <link rel="stylesheet" href="css/index.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div id="logo" class="logo">KUSHALWEAR</div>
+            <button class="menu-toggle">☰</button>
+            <nav>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="men.html">Men</a></li>
+                    <li><a href="women.html">Women</a></li>
+                    <li><a href="about.html">About Us</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                    <li><a href="cart.html">Cart</a></li>
+                    <li><a href="admin.html" id="admin-link" style="display: none;">Admin Panel</a></li>
+                </ul>
+            </nav>
+            <div class="auth-buttons">
+                <button class="login-btn" onclick="openLoginModal()">Login</button>
+                <button class="signup-btn" onclick="openSignupModal()">Sign Up</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="hero">
+            <div class="hero-text">
+                <h1>Luxury Fashion for Men & Women</h1>
+                <p>Discover the art of elegant clothing.</p>
+                <a href="#products" class="btn">Shop Now</a>
+            </div>
+        </div>
+
+        <section id="products" class="categories">
+            <h2>Our Products</h2>
+            <div class="category-container">
+                <div class="category">
+                    <img src="images/men2.jpg.jpg" alt="Men's Collection">
+                    <h3>Men's Collection</h3>
+                    <a href="men.html" class="category-link">Shop Men</a>
+                </div>
+                <div class="category">
+                    <img src="images/women.jpg.webp" alt="Women's Collection">
+                    <h3>Women's Collection</h3>
+                    <a href="women.html" class="category-link">Shop Women</a>
+                </div>
+            </div>
+        </section>
+
+        <section class="featured">
+            <h2>Featured Items</h2>
+            <div class="product-grid">
+                <div class="product-card">
+                    <img src="images/OIP (1).jpg" alt="Men's Jacket">
+                    <h3>Men's Jacket</h3>
+                    <p class="price">$99.99</p>
+                    <button class="add-to-cart-btn" data-id="1" data-name="Men's Jacket" data-price="99.99" data-image="images/OIP (1).jpg">Add to Cart</button>
+                </div>
+                <div class="product-card">
+                    <img src="images/R (1).jpg" alt="Women's Dress">
+                    <h3>Women's Dress</h3>
+                    <p class="price">$129.99</p>
+                    <button class="add-to-cart-btn" data-id="2" data-name="Women's Dress" data-price="129.99" data-image="images/R (1).jpg">Add to Cart</button>
+                </div>
+                <div class="product-card">
+                    <img src="images/shrit.jpg" alt="Casual Shirt">
+                    <h3>Casual Shirt</h3>
+                    <p class="price">$59.99</p>
+                    <button class="add-to-cart-btn" data-id="3" data-name="Casual Shirt" data-price="59.99" data-image="images/shrit.jpg">Add to Cart</button>
+                </div>
+                <div class="product-card">
+                    <img src="images/pretty.jpg" alt="Elegant Dress">
+                    <h3>Elegant Dress</h3>
+                    <p class="price">$149.99</p>
+                    <button class="add-to-cart-btn" data-id="4" data-name="Elegant Dress" data-price="149.99" data-image="images/pretty.jpg">Add to Cart</button>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeLoginModal()">&times;</span>
+            <h2>Login</h2>
+            <form id="loginForm">
+                <input type="email" placeholder="Email" required>
+                <input type="password" placeholder="Password" required>
+                <button type="submit">Login</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Signup Modal -->
+    <div id="signupModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeSignupModal()">&times;</span>
+            <h2>Sign Up</h2>
+            <form id="signupForm">
+                <input type="text" placeholder="Full Name" required>
+                <input type="email" placeholder="Email" required>
+                <input type="password" placeholder="Password" required>
+                <input type="password" placeholder="Confirm Password" required>
+                <button type="submit">Sign Up</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Profile Modal -->
+    <div id="profileModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeProfileModal()">&times;</span>
+            <h2>My Profile</h2>
+            <div id="profile-content">
+                <div class="profile-info">
+                    <div class="profile-avatar">
+                        <img id="profile-avatar" src="https://via.placeholder.com/100" alt="Profile Avatar">
+                        <button id="change-avatar-btn" class="btn btn-secondary">Change Avatar</button>
+                    </div>
+                    <div class="profile-details">
+                        <div class="profile-field">
+                            <label>Name:</label>
+                            <input type="text" id="profile-name" placeholder="Your Name">
+                        </div>
+                        <div class="profile-field">
+                            <label>Email:</label>
+                            <input type="email" id="profile-email" readonly>
+                        </div>
+                        <div class="profile-field">
+                            <label>Phone:</label>
+                            <input type="tel" id="profile-phone" placeholder="Your Phone">
+                        </div>
+                        <div class="profile-field">
+                            <label>Address:</label>
+                            <input type="text" id="profile-street" placeholder="Street Address">
+                            <input type="text" id="profile-city" placeholder="City">
+                            <input type="text" id="profile-state" placeholder="State">
+                            <input type="text" id="profile-zipcode" placeholder="Zip Code">
+                            <input type="text" id="profile-country" placeholder="Country">
+                        </div>
+                        <button id="save-profile-btn" class="btn btn-primary">Save Profile</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Checkout Modal -->
+    <div id="checkoutModal" class="modal">
+        <div class="modal-content checkout-modal">
+            <span class="close" onclick="closeCheckoutModal()">&times;</span>
+            <h2>Checkout</h2>
+            <div class="checkout-container">
+                <div class="checkout-section">
+                    <h3>Order Summary</h3>
+                    <div id="checkout-items" class="checkout-items">
+                        <!-- Order items will be loaded here -->
+                    </div>
+                    <div class="checkout-total">
+                        <p>Subtotal: $<span id="checkout-subtotal">0.00</span></p>
+                        <p>Tax: $<span id="checkout-tax">0.00</span></p>
+                        <p>Shipping: $<span id="checkout-shipping">0.00</span></p>
+                        <p class="total">Total: $<span id="checkout-total">0.00</span></p>
+                    </div>
+                </div>
+                
+                <div class="checkout-section">
+                    <h3>Shipping Information</h3>
+                    <form id="shipping-form">
+                        <input type="text" id="shipping-name" placeholder="Full Name" required>
+                        <input type="email" id="shipping-email" placeholder="Email" required>
+                        <input type="tel" id="shipping-phone" placeholder="Phone" required>
+                        <input type="text" id="shipping-address" placeholder="Street Address" required>
+                        <input type="text" id="shipping-city" placeholder="City" required>
+                        <input type="text" id="shipping-state" placeholder="State" required>
+                        <input type="text" id="shipping-zipcode" placeholder="Zip Code" required>
+                        <input type="text" id="shipping-country" placeholder="Country" required>
+                    </form>
+                </div>
+
+                <div class="checkout-section">
+                    <h3>Payment Method</h3>
+                    <div class="payment-methods">
+                        <label class="payment-option">
+                            <input type="radio" name="payment" value="card" checked>
+                            <span>Credit/Debit Card</span>
+                        </label>
+                        <label class="payment-option">
+                            <input type="radio" name="payment" value="paypal">
+                            <span>PayPal</span>
+                        </label>
+                        <label class="payment-option">
+                            <input type="radio" name="payment" value="bank">
+                            <span>Bank Transfer</span>
+                        </label>
+                    </div>
+                    
+                    <div id="card-payment" class="payment-form">
+                        <input type="text" id="card-number" placeholder="Card Number" maxlength="16">
+                        <div class="card-row">
+                            <input type="text" id="card-expiry" placeholder="MM/YY" maxlength="5">
+                            <input type="text" id="card-cvv" placeholder="CVV" maxlength="4">
+                        </div>
+                        <input type="text" id="card-name" placeholder="Name on Card">
+                    </div>
+                </div>
+
+                <div class="checkout-section">
+                    <h3>Backing Options</h3>
+                    <div class="backing-options">
+                        <label class="backing-option">
+                            <input type="checkbox" id="backing-newsletter">
+                            <span>Subscribe to Newsletter</span>
+                        </label>
+                        <label class="backing-option">
+                            <input type="checkbox" id="backing-reviews">
+                            <span>Send me product reviews</span>
+                        </label>
+                        <label class="backing-option">
+                            <input type="checkbox" id="backing-updates">
+                            <span>Get updates about new collections</span>
+                        </label>
+                        <label class="backing-option">
+                            <input type="checkbox" id="backing-special">
+                            <span>Special offers and discounts</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="checkout-actions">
+                    <button id="place-order-btn" class="btn btn-primary">Place Order</button>
+                    <button id="back-to-cart-btn" class="btn btn-secondary">Back to Cart</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 KushalWear. All rights reserved.</p>
+    </footer>
+
+    <script src="js/index.js"></script>
+</body>
+</html>
+
