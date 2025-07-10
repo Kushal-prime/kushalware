@@ -126,8 +126,21 @@ function closeSignupModal() {
 // Authentication Functions
 async function handleLogin(e) {
     e.preventDefault();
-    const email = e.target.querySelector('input[type="email"]').value;
-    const password = e.target.querySelector('input[type="password"]').value;
+    
+    const submitBtn = document.getElementById('loginSubmitBtn');
+    const btnText = submitBtn.querySelector('.btn-text');
+    const btnLoader = submitBtn.querySelector('.btn-loader');
+    
+    // Show loading state
+    submitBtn.disabled = true;
+    btnText.style.display = 'none';
+    btnLoader.style.display = 'flex';
+    
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
+    
+    // Clear previous errors
+    clearErrors('login');
 
     try {
         const response = await fetch('http://localhost:3000/api/auth/login', {
@@ -152,18 +165,48 @@ async function handleLogin(e) {
     } catch (error) {
         console.error('Login error:', error);
         showNotification('Login failed. Please try again.', 'error');
+    } finally {
+        // Reset button state
+        submitBtn.disabled = false;
+        btnText.style.display = 'flex';
+        btnLoader.style.display = 'none';
     }
 }
 
 async function handleSignup(e) {
     e.preventDefault();
-    const name = e.target.querySelector('input[type="text"]').value;
-    const email = e.target.querySelector('input[type="email"]').value;
-    const password = e.target.querySelectorAll('input[type="password"]')[0].value;
-    const confirmPassword = e.target.querySelectorAll('input[type="password"]')[1].value;
+    
+    const submitBtn = document.getElementById('signupSubmitBtn');
+    const btnText = submitBtn.querySelector('.btn-text');
+    const btnLoader = submitBtn.querySelector('.btn-loader');
+    
+    // Show loading state
+    submitBtn.disabled = true;
+    btnText.style.display = 'none';
+    btnLoader.style.display = 'flex';
+    
+    const name = document.getElementById('signupName').value;
+    const email = document.getElementById('signupEmail').value;
+    const password = document.getElementById('signupPassword').value;
+    const confirmPassword = document.getElementById('signupConfirmPassword').value;
+    const agreeTerms = document.getElementById('agreeTerms').checked;
+
+    // Clear previous errors
+    clearErrors('signup');
+
+    // Validation
+    if (!agreeTerms) {
+        showFieldError('signup', 'agreeTerms', 'You must agree to the terms and conditions');
+        return;
+    }
 
     if (password !== confirmPassword) {
-        showNotification('Passwords do not match!', 'error');
+        showFieldError('signup', 'signupConfirmPassword', 'Passwords do not match');
+        return;
+    }
+
+    if (password.length < 6) {
+        showFieldError('signup', 'signupPassword', 'Password must be at least 6 characters');
         return;
     }
 
@@ -187,6 +230,11 @@ async function handleSignup(e) {
     } catch (error) {
         console.error('Signup error:', error);
         showNotification('Signup failed. Please try again.', 'error');
+    } finally {
+        // Reset button state
+        submitBtn.disabled = false;
+        btnText.style.display = 'flex';
+        btnLoader.style.display = 'none';
     }
 }
 
@@ -329,10 +377,8 @@ function proceedToCheckout() {
         return;
     }
     
-    // Here you would typically redirect to a checkout page
-    // For now, we'll show a success message
-    showNotification('Proceeding to checkout...', 'success');
-    // You can add actual checkout logic here
+    // Open checkout modal
+    openCheckoutModal();
 }
 
 function updateAuthUI() {
@@ -511,7 +557,7 @@ async function placeOrder() {
             backing: backingOptions,
             subtotal: parseFloat(document.getElementById('checkout-subtotal').textContent),
             tax: parseFloat(document.getElementById('checkout-tax').textContent),
-            shipping: parseFloat(document.getElementById('checkout-shipping').textContent),
+            shippingCost: parseFloat(document.getElementById('checkout-shipping').textContent),
             total: parseFloat(document.getElementById('checkout-total').textContent)
         };
 
@@ -557,6 +603,83 @@ async function placeOrder() {
     }
 }
 
+// Helper Functions for Enhanced Forms
+function clearErrors(formType) {
+    const errorElements = document.querySelectorAll(`#${formType}Modal .error-message`);
+    errorElements.forEach(element => {
+        element.textContent = '';
+    });
+}
+
+function showFieldError(formType, fieldId, message) {
+    const errorElement = document.getElementById(`${fieldId}Error`);
+    if (errorElement) {
+        errorElement.textContent = message;
+    }
+}
+
+function switchToSignup() {
+    closeLoginModal();
+    setTimeout(() => {
+        openSignupModal();
+    }, 300);
+}
+
+function switchToLogin() {
+    closeSignupModal();
+    setTimeout(() => {
+        openLoginModal();
+    }, 300);
+}
+
+// Password strength checker
+function checkPasswordStrength(password) {
+    const strengthElement = document.getElementById('passwordStrength');
+    if (!strengthElement) return;
+
+    let strength = 0;
+    let feedback = '';
+
+    if (password.length >= 8) strength++;
+    if (/[a-z]/.test(password)) strength++;
+    if (/[A-Z]/.test(password)) strength++;
+    if (/[0-9]/.test(password)) strength++;
+    if (/[^A-Za-z0-9]/.test(password)) strength++;
+
+    strengthElement.className = 'password-strength';
+    
+    switch (strength) {
+        case 0:
+        case 1:
+            strengthElement.classList.add('weak');
+            feedback = 'Very weak';
+            break;
+        case 2:
+            strengthElement.classList.add('fair');
+            feedback = 'Fair';
+            break;
+        case 3:
+            strengthElement.classList.add('good');
+            feedback = 'Good';
+            break;
+        case 4:
+        case 5:
+            strengthElement.classList.add('strong');
+            feedback = 'Strong';
+            break;
+    }
+}
+
+// Add event listeners for password strength
+document.addEventListener('DOMContentLoaded', () => {
+    const passwordInput = document.getElementById('signupPassword');
+    if (passwordInput) {
+        passwordInput.addEventListener('input', (e) => {
+            checkPasswordStrength(e.target.value);
+        });
+    }
+});
+
 // Add CSS animations for notifications
 const style = document.createElement('style');
 style.textContent = `
@@ -579,7 +702,7 @@ style.textContent = `
     .logout-btn {
         background: transparent;
         color: white;
-        border: 2px solid #ff6b6b;
+        border: 2px solid #d4af37;
         padding: 8px 20px;
         border-radius: 25px;
         font-weight: 600;
@@ -589,7 +712,7 @@ style.textContent = `
     }
     
     .logout-btn:hover {
-        background: #ff6b6b;
+        background: #d4af37;
         transform: translateY(-2px);
     }
 `;

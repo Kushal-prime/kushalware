@@ -161,9 +161,12 @@ function displayOrders(orders) {
     
     orders.forEach(order => {
         const row = document.createElement('tr');
+        const userName = order.user ? order.user.name : 'Unknown User';
+        const userEmail = order.user ? order.user.email : 'N/A';
+        
         row.innerHTML = `
             <td>${order.orderNumber}</td>
-            <td>${order.user.name}</td>
+            <td>${userName}</td>
             <td>${order.items.length} items</td>
             <td>$${order.total.toFixed(2)}</td>
             <td><span class="order-status status-${order.status}">${order.status}</span></td>
@@ -241,9 +244,9 @@ function displayOrderDetails(order) {
         
         <div class="order-detail-section">
             <h3>Customer Information</h3>
-            <p><strong>Name:</strong> ${order.user.name}</p>
-            <p><strong>Email:</strong> ${order.user.email}</p>
-            <p><strong>Phone:</strong> ${order.user.phone || 'N/A'}</p>
+            <p><strong>Name:</strong> ${order.user ? order.user.name : 'Unknown User'}</p>
+            <p><strong>Email:</strong> ${order.user ? order.user.email : 'N/A'}</p>
+            <p><strong>Phone:</strong> ${order.user ? (order.user.phone || 'N/A') : 'N/A'}</p>
         </div>
         
         <div class="order-detail-section">

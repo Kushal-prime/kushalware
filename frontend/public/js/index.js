@@ -107,6 +107,42 @@ document.addEventListener('DOMContentLoaded', () => {
     const contact = document.querySelector(".contact-section");
     if (about) setTimeout(() => about.classList.add("show"), 200);
     if (contact) setTimeout(() => contact.classList.add("show"), 200);
+    
+    // Add real-time validation for signup form
+    const signupPassword = document.getElementById('signupPassword');
+    if (signupPassword) {
+        signupPassword.addEventListener('input', (e) => {
+            updatePasswordStrength(e.target.value);
+            clearSignupErrors();
+        });
+    }
+    
+    // Add real-time validation for login form
+    const loginEmail = document.getElementById('loginEmail');
+    const loginPassword = document.getElementById('loginPassword');
+    
+    if (loginEmail) {
+        loginEmail.addEventListener('input', () => {
+            clearLoginErrors();
+        });
+    }
+    
+    if (loginPassword) {
+        loginPassword.addEventListener('input', () => {
+            clearLoginErrors();
+        });
+    }
+    
+    // Add real-time validation for signup form fields
+    const signupInputs = ['signupName', 'signupEmail', 'signupConfirmPassword'];
+    signupInputs.forEach(id => {
+        const input = document.getElementById(id);
+        if (input) {
+            input.addEventListener('input', () => {
+                clearSignupErrors();
+            });
+        }
+    });
 });
 
 // Modal Functions
@@ -165,10 +201,42 @@ function closeCheckoutModal() {
 // Authentication Functions
 async function handleLogin(e) {
     e.preventDefault();
-    const formData = new FormData(e.target);
-    const email = e.target.querySelector('input[type="email"]').value;
-    const password = e.target.querySelector('input[type="password"]').value;
-
+    
+    // Get form elements
+    const emailInput = document.getElementById('loginEmail');
+    const passwordInput = document.getElementById('loginPassword');
+    const submitBtn = document.getElementById('loginSubmitBtn');
+    const btnText = submitBtn.querySelector('.btn-text');
+    const btnLoader = submitBtn.querySelector('.btn-loader');
+    
+    // Clear previous errors
+    clearLoginErrors();
+    
+    // Validate inputs
+    const email = emailInput.value.trim();
+    const password = passwordInput.value;
+    
+    if (!email) {
+        showFieldError('loginEmailError', 'Email is required');
+        emailInput.classList.add('error');
+        return;
+    }
+    
+    if (!password) {
+        showFieldError('loginPasswordError', 'Password is required');
+        passwordInput.classList.add('error');
+        return;
+    }
+    
+    if (!isValidEmail(email)) {
+        showFieldError('loginEmailError', 'Please enter a valid email address');
+        emailInput.classList.add('error');
+        return;
+    }
+    
+    // Show loading state
+    setLoadingState(submitBtn, btnText, btnLoader, true);
+    
     try {
         const response = await fetch('http://localhost:3000/api/auth/login', {
             method: 'POST',
@@ -178,36 +246,133 @@ async function handleLogin(e) {
             body: JSON.stringify({ email, password })
         });
 
+        const data = await response.json();
+
         if (response.ok) {
-            const data = await response.json();
+            // Store authentication data
             localStorage.setItem('token', data.token);
             localStorage.setItem('user', JSON.stringify(data.user));
+            
+            // Remember me functionality
+            const rememberMe = document.getElementById('rememberMe');
+            if (rememberMe && rememberMe.checked) {
+                localStorage.setItem('rememberMe', 'true');
+            }
+            
+            // Success feedback
+            showNotification('Welcome back! Login successful.', 'success');
             closeLoginModal();
-            showNotification('Login successful!', 'success');
             updateAuthUI();
+            
+            // Reset form
+            e.target.reset();
+            
         } else {
-            const error = await response.json();
-            showNotification(error.message || 'Login failed', 'error');
+            // Handle specific error cases
+            let errorMessage = 'Login failed. Please try again.';
+            
+            if (data.message) {
+                errorMessage = data.message;
+            } else if (response.status === 401) {
+                errorMessage = 'Invalid email or password.';
+            } else if (response.status === 404) {
+                errorMessage = 'User not found.';
+            } else if (response.status === 500) {
+                errorMessage = 'Server error. Please try again later.';
+            }
+            
+            showNotification(errorMessage, 'error');
+            
+            // Show field-specific errors if available
+            if (data.errors) {
+                data.errors.forEach(error => {
+                    if (error.path === 'email') {
+                        showFieldError('loginEmailError', error.msg);
+                        emailInput.classList.add('error');
+                    } else if (error.path === 'password') {
+                        showFieldError('loginPasswordError', error.msg);
+                        passwordInput.classList.add('error');
+                    }
+                });
+            }
         }
     } catch (error) {
         console.error('Login error:', error);
-        showNotification('Login failed. Please try again.', 'error');
+        showNotification('Network error. Please check your connection and try again.', 'error');
+    } finally {
+        // Hide loading state
+        setLoadingState(submitBtn, btnText, btnLoader, false);
     }
 }
 
 async function handleSignup(e) {
     e.preventDefault();
-    const formData = new FormData(e.target);
-    const name = e.target.querySelector('input[type="text"]').value;
-    const email = e.target.querySelector('input[type="email"]').value;
-    const password = e.target.querySelectorAll('input[type="password"]')[0].value;
-    const confirmPassword = e.target.querySelectorAll('input[type="password"]')[1].value;
-
-    if (password !== confirmPassword) {
-        showNotification('Passwords do not match!', 'error');
+    
+    // Get form elements
+    const nameInput = document.getElementById('signupName');
+    const emailInput = document.getElementById('signupEmail');
+    const passwordInput = document.getElementById('signupPassword');
+    const confirmPasswordInput = document.getElementById('signupConfirmPassword');
+    const submitBtn = document.getElementById('signupSubmitBtn');
+    const btnText = submitBtn.querySelector('.btn-text');
+    const btnLoader = submitBtn.querySelector('.btn-loader');
+    
+    // Clear previous errors
+    clearSignupErrors();
+    
+    // Validate inputs
+    const name = nameInput.value.trim();
+    const email = emailInput.value.trim();
+    const password = passwordInput.value;
+    const confirmPassword = confirmPasswordInput.value;
+    
+    // Basic validation
+    if (!name) {
+        showFieldError('signupNameError', 'Name is required');
+        nameInput.classList.add('error');
         return;
     }
-
+    
+    if (!email) {
+        showFieldError('signupEmailError', 'Email is required');
+        emailInput.classList.add('error');
+        return;
+    }
+    
+    if (!isValidEmail(email)) {
+        showFieldError('signupEmailError', 'Please enter a valid email address');
+        emailInput.classList.add('error');
+        return;
+    }
+    
+    if (!password) {
+        showFieldError('signupPasswordError', 'Password is required');
+        passwordInput.classList.add('error');
+        return;
+    }
+    
+    if (password.length < 6) {
+        showFieldError('signupPasswordError', 'Password must be at least 6 characters long');
+        passwordInput.classList.add('error');
+        return;
+    }
+    
+    if (password !== confirmPassword) {
+        showFieldError('signupConfirmPasswordError', 'Passwords do not match');
+        confirmPasswordInput.classList.add('error');
+        return;
+    }
+    
+    // Check terms agreement
+    const agreeTerms = document.getElementById('agreeTerms');
+    if (!agreeTerms.checked) {
+        showNotification('Please agree to the Terms of Service and Privacy Policy', 'error');
+        return;
+    }
+    
+    // Show loading state
+    setLoadingState(submitBtn, btnText, btnLoader, true);
+    
     try {
         const response = await fetch('http://localhost:3000/api/auth/signup', {
             method: 'POST',
@@ -217,17 +382,64 @@ async function handleSignup(e) {
             body: JSON.stringify({ name, email, password })
         });
 
+        const data = await response.json();
+
         if (response.ok) {
-            const data = await response.json();
+            // Success feedback
+            showNotification('Account created successfully! You can now login.', 'success');
             closeSignupModal();
-            showNotification('Account created successfully! Please login.', 'success');
+            
+            // Reset form
+            e.target.reset();
+            
+            // Switch to login modal after a short delay
+            setTimeout(() => {
+                openLoginModal();
+                // Pre-fill email
+                const loginEmailInput = document.getElementById('loginEmail');
+                if (loginEmailInput) {
+                    loginEmailInput.value = email;
+                }
+            }, 1500);
+            
         } else {
-            const error = await response.json();
-            showNotification(error.message || 'Signup failed', 'error');
+            // Handle specific error cases
+            let errorMessage = 'Signup failed. Please try again.';
+            
+            if (data.message) {
+                errorMessage = data.message;
+            } else if (response.status === 400) {
+                errorMessage = 'Please check your input and try again.';
+            } else if (response.status === 409) {
+                errorMessage = 'An account with this email already exists.';
+            } else if (response.status === 500) {
+                errorMessage = 'Server error. Please try again later.';
+            }
+            
+            showNotification(errorMessage, 'error');
+            
+            // Show field-specific errors if available
+            if (data.errors) {
+                data.errors.forEach(error => {
+                    if (error.path === 'name') {
+                        showFieldError('signupNameError', error.msg);
+                        nameInput.classList.add('error');
+                    } else if (error.path === 'email') {
+                        showFieldError('signupEmailError', error.msg);
+                        emailInput.classList.add('error');
+                    } else if (error.path === 'password') {
+                        showFieldError('signupPasswordError', error.msg);
+                        passwordInput.classList.add('error');
+                    }
+                });
+            }
         }
     } catch (error) {
         console.error('Signup error:', error);
-        showNotification('Signup failed. Please try again.', 'error');
+        showNotification('Network error. Please check your connection and try again.', 'error');
+    } finally {
+        // Hide loading state
+        setLoadingState(submitBtn, btnText, btnLoader, false);
     }
 }
 
@@ -562,6 +774,129 @@ async function placeOrder() {
         console.error('Place order error:', error);
         showNotification('Failed to place order. Please try again.', 'error');
     }
+}
+
+// Helper Functions for Authentication
+function clearLoginErrors() {
+    const errorElements = ['loginEmailError', 'loginPasswordError'];
+    errorElements.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.textContent = '';
+            element.classList.remove('show');
+        }
+    });
+    
+    // Remove error styling from inputs
+    const inputs = ['loginEmail', 'loginPassword'];
+    inputs.forEach(id => {
+        const input = document.getElementById(id);
+        if (input) {
+            input.classList.remove('error');
+        }
+    });
+}
+
+function clearSignupErrors() {
+    const errorElements = ['signupNameError', 'signupEmailError', 'signupPasswordError', 'signupConfirmPasswordError'];
+    errorElements.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.textContent = '';
+            element.classList.remove('show');
+        }
+    });
+    
+    // Remove error styling from inputs
+    const inputs = ['signupName', 'signupEmail', 'signupPassword', 'signupConfirmPassword'];
+    inputs.forEach(id => {
+        const input = document.getElementById(id);
+        if (input) {
+            input.classList.remove('error');
+        }
+    });
+}
+
+function showFieldError(elementId, message) {
+    const element = document.getElementById(elementId);
+    if (element) {
+        element.textContent = message;
+        element.classList.add('show');
+    }
+}
+
+function setLoadingState(button, textElement, loaderElement, isLoading) {
+    if (isLoading) {
+        button.disabled = true;
+        textElement.style.display = 'none';
+        loaderElement.style.display = 'inline-flex';
+    } else {
+        button.disabled = false;
+        textElement.style.display = 'inline-flex';
+        loaderElement.style.display = 'none';
+    }
+}
+
+function isValidEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+}
+
+function checkPasswordStrength(password) {
+    let strength = 0;
+    let feedback = [];
+    
+    if (password.length >= 8) strength++;
+    if (/[a-z]/.test(password)) strength++;
+    if (/[A-Z]/.test(password)) strength++;
+    if (/[0-9]/.test(password)) strength++;
+    if (/[^A-Za-z0-9]/.test(password)) strength++;
+    
+    if (password.length < 6) feedback.push('Too short');
+    if (!/[a-z]/.test(password)) feedback.push('Needs lowercase letter');
+    if (!/[A-Z]/.test(password)) feedback.push('Needs uppercase letter');
+    if (!/[0-9]/.test(password)) feedback.push('Needs number');
+    
+    return { strength, feedback };
+}
+
+function updatePasswordStrength(password) {
+    const strengthElement = document.getElementById('passwordStrength');
+    if (!strengthElement) return;
+    
+    const { strength, feedback } = checkPasswordStrength(password);
+    
+    strengthElement.className = 'password-strength';
+    
+    if (password.length === 0) {
+        strengthElement.className = 'password-strength';
+        return;
+    }
+    
+    if (strength <= 2) {
+        strengthElement.classList.add('weak');
+    } else if (strength <= 3) {
+        strengthElement.classList.add('medium');
+    } else if (strength <= 4) {
+        strengthElement.classList.add('strong');
+    } else {
+        strengthElement.classList.add('very-strong');
+    }
+}
+
+// Modal switching functions
+function switchToSignup() {
+    closeLoginModal();
+    setTimeout(() => {
+        openSignupModal();
+    }, 300);
+}
+
+function switchToLogin() {
+    closeSignupModal();
+    setTimeout(() => {
+        openLoginModal();
+    }, 300);
 }
 
 function showNotification(message, type = 'info') {

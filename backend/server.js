@@ -42,6 +42,7 @@ const cartRoutes = require('./src/routes/cart');
 const productRoutes = require('./src/routes/products');
 const userRoutes = require('./src/routes/users');
 const orderRoutes = require('./src/routes/orders');
+const wishlistRoutes = require('./src/routes/wishlist');
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -49,6 +50,7 @@ app.use('/api/cart', cartRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/orders', orderRoutes);
+app.use('/api/wishlist', wishlistRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

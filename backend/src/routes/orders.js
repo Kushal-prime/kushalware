@@ -157,6 +157,52 @@ router.get('/my-orders', authenticateToken, async (req, res) => {
     }
 });
 
+// @route   GET /api/orders/stats/summary
+// @desc    Get order statistics (admin only)
+// @access  Private/Admin
+router.get('/stats/summary', authenticateToken, requireAdmin, async (req, res) => {
+    try {
+        const totalOrders = await Order.countDocuments();
+        const totalRevenue = await Order.aggregate([
+            { $match: { status: { $ne: 'cancelled' } } },
+            { $group: { _id: null, total: { $sum: '$total' } } }
+        ]);
+
+        const ordersByStatus = await Order.aggregate([
+            { $group: { _id: '$status', count: { $sum: 1 } } }
+        ]);
+
+        const recentOrders = await Order.find()
+            .populate('user', 'name email')
+            .sort({ createdAt: -1 })
+            .limit(5);
+
+        res.json({
+            summary: {
+                totalOrders,
+                totalRevenue: totalRevenue[0]?.total || 0,
+                ordersByStatus: ordersByStatus.reduce((acc, item) => {
+                    acc[item._id] = item.count;
+                    return acc;
+                }, {}),
+                recentOrders: recentOrders.map(order => ({
+                    orderNumber: order.orderNumber,
+                    user: order.user ? order.user.name : 'Unknown User',
+                    total: order.total,
+                    status: order.status,
+                    createdAt: order.createdAt
+                }))
+            }
+        });
+
+    } catch (error) {
+        console.error('Get order stats error:', error);
+        res.status(500).json({
+            message: 'Server error while fetching order statistics'
+        });
+    }
+});
+
 // @route   GET /api/orders/:id
 // @desc    Get order by ID (admin or order owner)
 // @access  Private
@@ -171,7 +217,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
         }
 
         // Check if user is admin or order owner
-        if (req.user.role !== 'admin' && order.user._id.toString() !== req.user._id.toString()) {
+        if (req.user.role !== 'admin' && order.user && order.user._id.toString() !== req.user._id.toString()) {
             return res.status(403).json({
                 message: 'Access denied'
             });
@@ -263,52 +309,6 @@ router.put('/:id/status', authenticateToken, requireAdmin, [
         console.error('Update order status error:', error);
         res.status(500).json({
             message: 'Server error while updating order status'
-        });
-    }
-});
-
-// @route   GET /api/orders/stats/summary
-// @desc    Get order statistics (admin only)
-// @access  Private/Admin
-router.get('/stats/summary', authenticateToken, requireAdmin, async (req, res) => {
-    try {
-        const totalOrders = await Order.countDocuments();
-        const totalRevenue = await Order.aggregate([
-            { $match: { status: { $ne: 'cancelled' } } },
-            { $group: { _id: null, total: { $sum: '$total' } } }
-        ]);
-
-        const ordersByStatus = await Order.aggregate([
-            { $group: { _id: '$status', count: { $sum: 1 } } }
-        ]);
-
-        const recentOrders = await Order.find()
-            .populate('user', 'name email')
-            .sort({ createdAt: -1 })
-            .limit(5);
-
-        res.json({
-            summary: {
-                totalOrders,
-                totalRevenue: totalRevenue[0]?.total || 0,
-                ordersByStatus: ordersByStatus.reduce((acc, item) => {
-                    acc[item._id] = item.count;
-                    return acc;
-                }, {}),
-                recentOrders: recentOrders.map(order => ({
-                    orderNumber: order.orderNumber,
-                    user: order.user.name,
-                    total: order.total,
-                    status: order.status,
-                    createdAt: order.createdAt
-                }))
-            }
-        });
-
-    } catch (error) {
-        console.error('Get order stats error:', error);
-        res.status(500).json({
-            message: 'Server error while fetching order statistics'
         });
     }
 });

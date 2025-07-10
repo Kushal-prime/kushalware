@@ -8,8 +8,7 @@ const orderSchema = new mongoose.Schema({
     },
     orderNumber: {
         type: String,
-        unique: true,
-        required: true
+        unique: true
     },
     items: [
         {
@@ -142,27 +141,34 @@ const orderSchema = new mongoose.Schema({
 
 // Generate unique order number
 orderSchema.pre('save', async function(next) {
-    if (this.isNew) {
-        const date = new Date();
-        const year = date.getFullYear().toString().slice(-2);
-        const month = (date.getMonth() + 1).toString().padStart(2, '0');
-        const day = date.getDate().toString().padStart(2, '0');
-        
-        // Get count of orders today
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const tomorrow = new Date(today);
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        
-        const count = await this.constructor.countDocuments({
-            createdAt: {
-                $gte: today,
-                $lt: tomorrow
-            }
-        });
-        
-        const orderNumber = `KW${year}${month}${day}${(count + 1).toString().padStart(4, '0')}`;
-        this.orderNumber = orderNumber;
+    if (this.isNew && !this.orderNumber) {
+        try {
+            const date = new Date();
+            const year = date.getFullYear().toString().slice(-2);
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const day = date.getDate().toString().padStart(2, '0');
+            
+            // Get count of orders today using a more reliable method
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            
+            const count = await this.constructor.countDocuments({
+                createdAt: {
+                    $gte: today,
+                    $lt: tomorrow
+                }
+            });
+            
+            const orderNumber = `KW${year}${month}${day}${(count + 1).toString().padStart(4, '0')}`;
+            this.orderNumber = orderNumber;
+        } catch (error) {
+            console.error('Error generating order number:', error);
+            // Fallback order number
+            const timestamp = Date.now().toString().slice(-8);
+            this.orderNumber = `KW${timestamp}`;
+        }
     }
     next();
 });
