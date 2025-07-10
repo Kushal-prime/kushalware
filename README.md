@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 🛍️ KushalWear - Full Stack E-Commerce Platform
 
 A modern, full-stack e-commerce platform with **frontend deployed on Netlify** and **backend deployed on Vercel**.
@@ -300,3 +301,6 @@ node scripts/check-admin.js
 **Built with ❤️ for KushalWear**
 
 **Frontend**: Netlify | **Backend**: Vercel | **Database**: MongoDB Atlas 
+=======
+# kushalware.front
+>>>>>>> 715cc4b8aa2bfb93a5da020cea2e10f4520ead01
